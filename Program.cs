@@ -1,41 +1,19 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.Data.Common;
-using System.Diagnostics;
-using System.Diagnostics.Eventing.Reader;
-using System.Linq;
-using System.Net.Http.Headers;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace Threads_IPC_Project1
 {
-    class Customer : Bank
-    {
-        private string name;
-        private string email;
-        private int id;
 
-        public Customer() { }
-        public Customer(string name, string email, int id)
-        {
-            this.name = name;
-            this.email = email;
-            this.id = id;
-        }
-    }
-
-    class Account : Bank
+    class Account
     {
         CreditCard card;
         private float balance;
         private string username;
         private string password;
-        private int loginToken = 0;
-        public static float transferStatus = 0;
+        private int loginToken = 0; // value reads 0 for logged out and 1 for logged in
 
-        public Account() { }
+        public Account() { } //default constructor
         public Account(float balance, string username, string password, int creditScore)
         {
             this.balance = balance;
@@ -44,24 +22,30 @@ namespace Threads_IPC_Project1
             card = new CreditCard(creditScore);
         }
 
+        /*
+         This method adds a specified amount into the account balance.
+         */
         public void deposit(float amount)
         {
-            if (loginToken == 1 && amount > 0)
+            if (loginToken == 1 && amount > 0) // verifies user is logged in and amount is not negative or 0
             {
                 Console.WriteLine("Depositing ${0} for {1}", amount, username);
                 balance += amount;
                 Console.WriteLine("${0} has been deposited for {1}", amount, username);
             }
-            else if (loginToken == 1 && amount <= 0)
+            else if (loginToken == 1 && amount <= 0) // invalid case
             {
                 Console.WriteLine("Invalid transaction amount");
             }
             else
             {
-                Console.WriteLine("Must log in");
+                Console.WriteLine("Must log in"); // invalid token
             }
         }
 
+        /*
+         This method takes a specified amount from the account balance and returns the value.
+         */
         public float withdraw(float amount)
         {
             if (loginToken == 1)
@@ -72,17 +56,20 @@ namespace Threads_IPC_Project1
                     return 0;
                 }
                 Console.WriteLine("Processing withdrawal of ${0}", amount);
-                balance -= amount;
+                balance -= amount; // amount deducted
                 Console.WriteLine("${0} has been withdrawn for {1}", amount, username);
-                return amount + balance;
+                return amount;
             }
             Console.WriteLine("Must log in");
             return 0;
         }
 
+        /*
+         This method validates the account token to value 1, granting access to other methods.
+         */
         public void login(string username, string password)
         {
-            if (loginToken == 1)
+            if (loginToken == 1) // token already valid
             {
                 throw new Exception("Duplicate account access found: This user is already logged in");
             }
@@ -96,46 +83,56 @@ namespace Threads_IPC_Project1
             }
             else if (username.Equals(this.username) && password == this.password)
             {
-                Console.WriteLine("User {0} has been logged in", username);
+                Console.WriteLine("User {0} has been logged in", username); // token validated, user logs in
                 loginToken = 1;
             }
         }
 
-        public void logout()
+        /*
+         This method sets the account token value to 0, locking access to other methods.
+         */
+        public void logout() 
         {
-            if (loginToken == 0)
+            if (loginToken == 0) // token already 0
             {
                 throw new Exception("Duplicate account access found: This user is already logged out");
             }
             else
             {
-                Console.WriteLine("User: {0} has logged out", username);
-                loginToken = 0;
+                Console.WriteLine("User: {0} has logged out", username); // user logs out
+                loginToken = 0; // token set to 0
             }
 
         }
 
+        /*
+        This method takes a specified amount requested and adds it to the account balance. The value is then returned. 
+         */
         public float loan(float amount)
         {
             if (loginToken == 1)
             {
-                if (card.getCreditScore() >= 500)
+                if (card.getCreditScore() >= 500) // credit score value checked
                 {
                     Console.WriteLine("${0} has been disbursed for {1}", amount, username);
+                    balance += amount;
                     return amount;
                 }
-                Console.WriteLine("User: {0} is not eligible for a loan", username);
+                Console.WriteLine("User: {0} is not eligible for a loan", username); // invalid credit score
                 return 0;
             }
             Console.WriteLine("Must log in");
             return 0;
         }
 
+        /*
+         This method takes in two accounts and an amount, deducts the specified amount from the user's balance and adds deducted amount to specified account.
+        */
         public float transfer(float amount, Account account1, Account account2)
         {
             if (loginToken == 1)
             {
-                if (amount <= 0)
+                if (amount <= 0) // amount cannot be negative or 0
                 {
                     Console.WriteLine("Invalid transfer amount");
                     return 0;
@@ -149,8 +146,8 @@ namespace Threads_IPC_Project1
                 {
                     Console.WriteLine("Transfer processing for {0} from {1} to {2}", amount, account1, account2);
                     Console.WriteLine("Transfer processed for {0} from {1} to {2}", amount, account1, account2);
-                    balance -= amount;
-                    account2.recieve(amount);
+                    balance -= amount; // amount deducted from account1
+                    account2.recieve(amount); // amount added to account2
                     return amount;
                 }
             }
@@ -158,23 +155,28 @@ namespace Threads_IPC_Project1
             return 0;
         }
 
+        /*
+         This method takes a specified amount and adds it to the account balance.
+         */
         public void recieve(float amount)
         {
             balance += amount;
         }
 
+        /*
+         Retrieval methods for username, password, and balance.
+         */
         public string getUsername() { return username; }
         public string getPassword() { return password; }
         public float getBalance() { return balance; }
-        public float getTransferStatus() { return transferStatus; }
     }
 
     class CreditCard : Account
     {
-        private int cardNumber;
-        private int creditScore;
+        private int cardNumber; // card id
+        private int creditScore; // this score determines the owner's eligibility for a loan.
 
-        public CreditCard() { }
+        public CreditCard() { } // default constructor
         public CreditCard(int creditScore)
         {
             this.creditScore = creditScore;
@@ -185,38 +187,22 @@ namespace Threads_IPC_Project1
             this.creditScore = creditScore;
         }
 
+        /*
+         Retreival methods for cardNumber and creditScore
+         */
         public int getCardNumber() { return cardNumber; }
         public int getCreditScore() { return creditScore; }
     }
 
-    class Bank
-    {
-        private int id = 1000;
-        private string name;
-
-        public Bank() { }
-
-        public Account signUp(string name, string email)
-        {
-            Customer customer = new Customer(name, email, id + 1);
-
-            Console.WriteLine("Please enter username: ");
-            string user = Convert.ToString(Console.ReadLine());
-            Console.WriteLine("Please enter password: ");
-            string pass = Convert.ToString(Console.ReadLine());
-            Account account = new Account(0, user, pass, 500);
-
-            Console.WriteLine("\nAccount has been created");
-            return account;
-        }
-
-    }
-
     class Program
     {
-        private static object locked = new object();
-        private static Mutex mutex = new Mutex(), x = new Mutex(), y = new Mutex();
+        private static object locked = new object(); // locker object
+        private static Mutex mutex = new Mutex(), x = new Mutex(), y = new Mutex(); // mutex locks
 
+        /*
+         This method takes in an account and a specified amount. It logs into the specified account, calls the withdraw method on the account, and logs out of the account.
+        Mutex locks prevent race conditions.
+         */
         public static void transactionWithdraw(Account account, float amount)
         {
             mutex.WaitOne();
@@ -226,6 +212,10 @@ namespace Threads_IPC_Project1
             mutex.ReleaseMutex();
         }
 
+        /*
+         This method takes in an account and a specified amount. It logs into the specified account, calls the deposit method on the account, and logs out of the account.
+        Mutex locks prevent race conditions.
+         */
         public static void transactionDeposit(Account account, float amount)
         {
             mutex.WaitOne();
@@ -235,6 +225,10 @@ namespace Threads_IPC_Project1
             mutex.ReleaseMutex();
         }
 
+        /*
+         This method takes in an account and a specified amount. It logs into the specified account, calls the withdraw loan on the account, and logs out of the account.
+        Mutex locks prevent race conditions.
+         */
         public static void transactionLoan(Account account, float amount)
         {
             mutex.WaitOne();
@@ -244,6 +238,10 @@ namespace Threads_IPC_Project1
             mutex.ReleaseMutex();
         }
 
+        /*
+         This method takes in an account, deposit, loan, and withdrawal amount. It logs into the account, calls related methods, and logs out.
+        Monitor locks prevent race conditions.
+         */
         public static void accountStuff(Account account, float deposit, float loan, float withdraw)
         {
             try
@@ -265,25 +263,20 @@ namespace Threads_IPC_Project1
             }
         }
 
+        /*
+         This method is meant to demonstrate deadlock by aquiring two mutex locks, initiating an account transfer, and releasing the locks within a try catch statement.
+         */
         public static void transfer1(float amount, Account account1, Account account2)
         {
             try
             {
-                if (x.WaitOne())
-                {
-                    y.ReleaseMutex();
-                }
-                else if (y.WaitOne())
-                {
-                    x.ReleaseMutex();
-                }
                 x.WaitOne();
                 y.WaitOne();
                 account1.login(account1.getUsername(), account1.getPassword());
                 account1.transfer(amount, account1, account2);
                 account1.logout();
             }
-            catch (Exception e)
+            catch (Exception e) // intended for deadlock resolution
             {
                 Console.WriteLine("Deadlock reached");
             }
@@ -295,18 +288,13 @@ namespace Threads_IPC_Project1
             }
         }
 
+        /*
+         This method is meant to demonstrate deadlock by aquiring two mutex locks, initiating an account transfer, and releasing the locks within a try catch statement.
+         */
         public static void transfer2(float amount, Account account2, Account account1)
         {
             try
             {
-                if (y.WaitOne())
-                {
-                    x.ReleaseMutex();
-                }
-                else if (x.WaitOne())
-                {
-                    y.ReleaseMutex();
-                }
                 y.WaitOne();
                 x.WaitOne();
                 account2.login(account2.getUsername(), account2.getPassword());
@@ -315,7 +303,7 @@ namespace Threads_IPC_Project1
             }
             catch (Exception e)
             {
-                Console.WriteLine("Deadlock reached");
+                Console.WriteLine("Deadlock reached"); // intended for deadlock resolution
             }
             finally
             {
@@ -329,33 +317,33 @@ namespace Threads_IPC_Project1
 
         public static void Main(string[] args)
         {
-            List<Thread> threads = new List<Thread>();
+            List<Thread> threads = new List<Thread>(); // thread list for thread ordering
             Thread mainThread = Thread.CurrentThread;
-            Account account1 = new Account(150.00f, "JohnKennedy", "89FLY", 850);
+            Account account1 = new Account(150.00f, "JohnKennedy", "89FLY", 850); // custom accounts initialized
             Account account2 = new Account(289.27f, "RachelRyan", "405Cover1", 850);
             Account account3 = new Account(1289.45f, "StevenMare", "Softway21", 450);
 
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < 10; i++) // creates 10 concurrent threads running processes for deposit, loan, and withdrawal
             {
                 Thread thread = new Thread(new ThreadStart(() =>
                 {
                     transactionDeposit(account1, 250.00f);
                     transactionLoan(account1, 500.00f);
                     transactionWithdraw(account1, 150.00f);
-                }));
-                threads.Add(thread);
-                thread.Start();
+                })); // thread initialized
+                threads.Add(thread); // added to list
+                thread.Start(); // thread started
             }
 
             foreach (Thread thread in threads)
             {
-                thread.Join();
+                thread.Join(); // join method for ordering
             }
 
             Console.WriteLine("\nTest 1 Complete\n");
             threads = new List<Thread>();
 
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < 10; i++) // creates 10 concurrent threads calling accountStuff process
             {
                 Thread thread = new Thread(new ThreadStart(() => accountStuff(account3, 679.28f, 2000.00f, 250.99f)));
                 threads.Add(thread);
@@ -370,7 +358,7 @@ namespace Threads_IPC_Project1
             Console.WriteLine("\nTest 2 Complete\n");
             threads = new List<Thread>();
 
-            for (int i = 0; i < 3; i++)
+            for (int i = 0; i < 3; i++) // 6 threads inteneded to demonstrate deadlock
             {
                 Thread thread1 = new Thread(new ThreadStart(() => transfer1(200.00f, account1, account2)));
                 Thread thread2 = new Thread(new ThreadStart(() => transfer2(200.00f, account2, account1)));
