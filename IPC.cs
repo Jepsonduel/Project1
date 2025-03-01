@@ -1,19 +1,20 @@
-﻿using System;
+using System;
 using System.IO;
 using System.IO.Pipes;
 using System.Threading;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace IPC
 {
     internal class Server
     {
+        /*
+         This method creates a NamedPipeServerStream object which waits for a client pipe to connect in order to write to it using user entered text.
+        Source: 
+        dotnet-bot, “NamedPipeServerStream Class (System.IO.Pipes),” Microsoft.com, 2025. https://learn.microsoft.com/en-us/dotnet/api/system.io.pipes.namedpipeserverstream?view=net-9.0
+         */
         public static void serverPipe()
         {
-            using (NamedPipeServerStream pipeServer = new NamedPipeServerStream("testpipe", PipeDirection.Out))
+            using (NamedPipeServerStream pipeServer = new NamedPipeServerStream("testpipe", PipeDirection.Out)) //Sever pipe created
             {
                 Console.WriteLine("Connecting to client");
                 pipeServer.WaitForConnection();
@@ -34,6 +35,11 @@ namespace IPC
             }
         }
 
+        /*
+         This method creates a NamedPipeClientStream object which waits for a client pipe to connect in order to write to it using user entered text.
+        Source: 
+        dotnet-bot, “NamedPipeClientStream Class (System.IO.Pipes),” Microsoft.com, 2025. https://learn.microsoft.com/en-us/dotnet/api/system.io.pipes.namedpipeclientstream?view=net-9.0 (accessed Mar. 01, 2025).
+         */
         public static void clientPipe()
         {
             using (NamedPipeClientStream pipeClient = new NamedPipeClientStream(".", "testpipe", PipeDirection.In))
@@ -57,7 +63,7 @@ namespace IPC
         static void Main(string[] args)
         {
             Thread thread1 = new Thread(new ThreadStart(serverPipe));
-            Thread thread2 = new Thread(new ThreadStart(clientPipe));
+            Thread thread2 = new Thread(new ThreadStart(clientPipe)); // threads initialized
             thread1.Start();
             thread2.Start();
             thread1.Join();
