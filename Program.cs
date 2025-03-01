@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 
-namespace Threads_IPC_Project1
+namespace MultiThreading
 {
 
     class Account
