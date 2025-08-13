@@ -4,5 +4,5 @@ Steps for installation:
 1. Clone the repository: https://github.com/Jepsonduel/Project1
 2. Locate the file directory.
 3. Ensure the .NET framework version 4.7.2 dependencies are installed.
-4. Open the application.
-5. Run the application.
+4. Open the solution file.
+5. Run the applications separately.
